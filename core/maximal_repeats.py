@@ -179,5 +179,5 @@ def perform_bottom_up_traversal(s, suftab, lcp_table):
             else:
                 stack.push(Interval(lcp_table[i], lb, -1, []))
 
-    stack.top().set_rb(len(lcp_table) - 1)
+    stack.top().set_rb(len(lcp_table))
     process(stack.pop(), suftab, s)
