@@ -93,7 +93,7 @@ def get_child_intervals(i, j, child_tab: list[Child]):
     else:
         i_1 = child_tab[i].get_down()
 
-    intervals.append((i, i_1))
+    intervals.append((i, i_1 - 1))
 
     while child_tab[i_1].get_next_l_index() != -1:
         i_2 = child_tab[i_1].get_next_l_index()
@@ -116,4 +116,5 @@ def get_lcp(i, j, child_table: list[Child], lcp_tab):
 
 def perform_top_down_traversal(s, p, suf_tap, lcp_tab):
     child_table = compute_child_table(suf_tap, lcp_tab)
-    intervals: list[(int, int)] = get_child_intervals(1, 3, child_table)
+    intervals: list[(int, int)] = get_child_intervals(0, 5, child_table)
+    print(intervals)
