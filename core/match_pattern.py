@@ -1,3 +1,6 @@
+from typing import Tuple
+
+
 class Child:
     def __init__(self):
         self.__up = -1
@@ -79,19 +82,21 @@ def compute_child_table(suf_tab, lcp_tab):
     return child_table
 
 
-def get_child_intervals(i, j, child_tab: list[Child]):
+def get_child_intervals(i, j, child_tab: list[Child]) -> list[Tuple[int, int]]:
     intervals = []
-
-    if i == 0 and j == len(child_tab):
-        return intervals
-
     i_1: int = -1
     i_2: int = -1
 
-    if i < child_tab[j + 1].get_up() <= j:
+    if i == 0 and j == len(child_tab):
+        i_1 = child_tab[i].get_next_l_index()
+    elif (j + 1 < len(child_tab)) and i < child_tab[j + 1].get_up() <= j:
         i_1 = child_tab[j + 1].get_up()
     else:
         i_1 = child_tab[i].get_down()
+
+    # has no children
+    if i_1 == -1:
+        return intervals
 
     intervals.append((i, i_1 - 1))
 
@@ -116,5 +121,5 @@ def get_lcp(i, j, child_table: list[Child], lcp_tab):
 
 def perform_top_down_traversal(s, p, suf_tap, lcp_tab):
     child_table = compute_child_table(suf_tap, lcp_tab)
-    intervals: list[(int, int)] = get_child_intervals(0, 5, child_table)
+    intervals: list[Tuple[int, int]] = get_child_intervals(0, len(child_table), child_table)
     print(intervals)
