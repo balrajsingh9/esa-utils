@@ -70,27 +70,21 @@ def add(top_interval: Interval, last_interval: Interval):
 class SpecialStack:
     def __init__(self):
         self.__stack = []
-        self.__len: int = 0
 
     def top(self):
-        if self.__len <= 0:
-            return None
+        if len(self.__stack) == 0:
+            raise Exception("Trying to access top on an empty stack")
         else:
-            return self.__stack[self.__len - 1]
+            return self.__stack[len(self.__stack) - 1]
 
     def pop(self):
-        self.__len -= 1
         return self.__stack.pop()
 
     def push(self, interval: Interval):
         self.__stack.append(interval)
-        self.__len += 1
-
-    def get_size(self):
-        return self.__len
 
     def is_empty(self):
-        return self.__len == 0
+        return len(self.__stack) == 0
 
 
 def process(lcp_interval: Interval, suf_tab, s):
@@ -98,7 +92,7 @@ def process(lcp_interval: Interval, suf_tab, s):
     prev = None
 
     pos_set = []
-    l = lcp_interval.get_lcp_value()
+    lcp = lcp_interval.get_lcp_value()
 
     for j in range(0, len(lcp_interval.get_child_list())):
         pos_set = [-1] * 26
@@ -137,7 +131,7 @@ def process(lcp_interval: Interval, suf_tab, s):
 
                         if p < p_prime:
                             print(f"(%s, %s), (%s, %s)" % (
-                                p, p + l - 1, p_prime, p_prime + l - 1))
+                                p, p + lcp - 1, p_prime, p_prime + lcp - 1))
 
             curr = curr.get_next()
 
