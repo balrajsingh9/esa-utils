@@ -75,7 +75,7 @@ class SpecialStack:
         if len(self.__stack) == 0:
             raise Exception("Trying to access top on an empty stack")
         else:
-            return self.__stack[len(self.__stack) - 1]
+            return self.__stack[-1]
 
     def pop(self):
         return self.__stack.pop()
