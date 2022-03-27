@@ -19,11 +19,6 @@ class Node:
         self.__next = nextNode
 
 
-class LinkedList:
-    def __init__(self):
-        self.head = None
-
-
 class Interval:
     def __init__(self, lcp_value: int = 0, lb: int = 0, rb: int = -1, child_list=None):
         if child_list is None:
@@ -99,7 +94,7 @@ class SpecialStack:
 
 
 def process(lcp_interval: Interval, suf_tab, s):
-    pos_set_list = LinkedList()
+    pos_set_list_head = None
     prev = None
 
     pos_set = []
@@ -120,16 +115,16 @@ def process(lcp_interval: Interval, suf_tab, s):
                 if p != 0 and (s[p - 1] == chr(i + 97)):
                     pos_set[i] = p
 
-        if pos_set_list.head is None:
-            pos_set_list.head = Node(pos_set)
-            prev = pos_set_list.head
+        if pos_set_list_head is None:
+            pos_set_list_head = Node(pos_set)
+            prev = pos_set_list_head
         else:
             new_node = Node(pos_set)
             new_node.set_next(prev.get_next())
             prev.set_next(new_node)
             prev = new_node
 
-        curr = pos_set_list.head
+        curr = pos_set_list_head
 
         while curr is not None:
             last_pos_set = curr.get_data()
@@ -146,7 +141,7 @@ def process(lcp_interval: Interval, suf_tab, s):
 
             curr = curr.get_next()
 
-    lcp_interval.set_pos_sets(pos_set_list)
+    lcp_interval.set_pos_sets(pos_set_list_head)
 
 
 def perform_bottom_up_traversal(s, suftab, lcp_table):
