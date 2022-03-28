@@ -62,15 +62,27 @@ def compute_child_table(suf_tab, lcp_tab):
     return child_table
 
 
-def get_child_intervals(i, j, child_tab: list[Child]) -> list[Tuple[int, int]]:
+def is_interval_eligible(a, lb, rb, lcp, s, suf_tab) -> bool:
+    for i in range(lb, rb):
+        idx_to_hit = suf_tab[i]
+
+        if s[idx_to_hit + lcp - 1] != a:
+            return False
+
+    return True
+
+
+def get_interval(a, i, j, s, child_tab: list[Child], lcp_tab: list[int], suf_tab: list[int]) -> list[Tuple[int, int]]:
     intervals = []
     i_1: int = -1
     i_2: int = -1
 
-    if i == 0 and j == len(child_tab):
+    lcp = get_lcp(i, j, child_tab, lcp_tab)
+
+    if i == 0 and j == len(child_tab) - 1:
         i_1 = child_tab[i].next_l_index
-    elif (j + 1 < len(child_tab)) and i < child_tab[j + 1].up <= j:
-        i_1 = child_tab[j + 1].up
+    elif i < child_tab[j].up <= j:
+        i_1 = child_tab[j].up
     else:
         i_1 = child_tab[i].down
 
@@ -78,28 +90,34 @@ def get_child_intervals(i, j, child_tab: list[Child]) -> list[Tuple[int, int]]:
     if i_1 == -1:
         return intervals
 
-    intervals.append((i, i_1 - 1))
+    if is_interval_eligible(a, i, i_1, lcp, s, suf_tab):
+        intervals.append((i, i_1 - 1))
 
     while child_tab[i_1].next_l_index != -1:
         i_2 = child_tab[i_1].next_l_index
 
-        intervals.append((i_1, i_2 - 1))
+        if is_interval_eligible(a, i_1, i_2, lcp, s, suf_tab):
+            intervals.append((i_1, i_2 - 1))
 
         i_1 = i_2
 
-    intervals.append((i_1, j))
+    if is_interval_eligible(a, i_1, j, lcp, s, suf_tab):
+        intervals.append((i_1, j))
 
     return intervals
 
 
-def get_lcp(i, j, child_table: list[Child], lcp_tab):
-    if (i < child_table[j + 1].up) and (child_table[j + 1].up <= j):
-        return lcp_tab[child_table[j + 1].up]
+def get_lcp(i, j, child_tab: list[Child], lcp_tab):
+    # root interval
+    if i == 0 and j == len(child_tab) - 1:
+        return 0
+    if i < child_tab[j].up <= j:
+        return child_tab[j].up
     else:
-        return lcp_tab[child_table[i].down]
+        return lcp_tab[child_tab[i].down]
 
 
-def perform_top_down_traversal(s, p, suf_tap, lcp_tab):
-    child_table = compute_child_table(suf_tap, lcp_tab)
-    intervals: list[Tuple[int, int]] = get_child_intervals(0, len(child_table), child_table)
+def perform_top_down_traversal(s, p, suf_tab, lcp_tab):
+    child_table = compute_child_table(suf_tab, lcp_tab)
+    intervals: list[Tuple[int, int]] = get_interval('t', 0, 10, s, child_table, lcp_tab, suf_tab)
     print(intervals)
