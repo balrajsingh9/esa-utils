@@ -1,66 +1,27 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 
+
+@dataclass
 class Node:
-    def __init__(self, data):
-        self.__data = data
-        self.__next = None
-
-    def get_data(self):
-        return self.__data
-
-    def get_next(self):
-        return self.__next
-
-    def set_data(self, data):
-        self.__data = data
-
-    def set_next(self, nextNode):
-        self.__next = nextNode
+    data: list[int]
+    next: Node | None = None
 
 
+@dataclass
 class Interval:
-    def __init__(self, lcp_value: int = 0, lb: int = 0, rb: int = -1, child_list=None):
-        if child_list is None:
-            child_list = []
-        self.__lcp_value: int = lcp_value
-        self.__lb: int = lb
-        self.__rb: int = rb
-        self.__child_list = child_list
-        self.__pos_sets = None
+    lcp_value: int = 0
+    lb: int = 0
+    rb: int = -1
+    child_list: list[Interval] = field(default_factory=list)
+    pos_sets: Node = None
 
-    def get_lcp_value(self):
-        return self.__lcp_value
-
-    def get_lb(self):
-        return self.__lb
-
-    def get_rb(self):
-        return self.__rb
-
-    def get_child_list(self):
-        return self.__child_list
-
-    def get_pos_sets(self):
-        return self.__pos_sets
-
-    def update_child_list(self, interval):
-        self.__child_list.append(interval)
-
-    def set_lb(self, lb: int):
-        self.__lb = lb
-
-    def set_rb(self, rb: int):
-        self.__rb = rb
-
-    def set_lcp_value(self, lcp_value: int):
-        self.__lcp_value = lcp_value
-
-    def set_pos_sets(self, pos_sets):
-        self.__pos_sets = pos_sets
+    def update_child_list(self, interval: Interval) -> None:
+        self.child_list.append(interval)
 
     def __str__(self):
-        return f"lb=%s, rb=%s, lcp_value=%s" % (self.__lb, self.__rb, self.__lcp_value)
+        return f"lb=%s, rb=%s, lcp_value=%s" % (self.lb, self.rb, self.lcp_value)
 
 
 def add(top_interval: Interval, last_interval: Interval):
@@ -92,14 +53,14 @@ def process(lcp_interval: Interval, suf_tab, s):
     prev = None
 
     pos_set = []
-    lcp = lcp_interval.get_lcp_value()
+    lcp = lcp_interval.lcp_value
 
-    for j in range(0, len(lcp_interval.get_child_list())):
+    for j in range(0, len(lcp_interval.child_list)):
         pos_set = [-1] * 26
-        child_interval: Interval = lcp_interval.get_child_list()[j]
+        child_interval: Interval = lcp_interval.child_list[j]
         p_set = set()
-        lb = child_interval.get_lb()
-        rb = child_interval.get_rb()
+        lb = child_interval.lb
+        rb = child_interval.rb
 
         for i in range(lb, rb + 1):
             p_set.add(suf_tab[i])
@@ -114,14 +75,14 @@ def process(lcp_interval: Interval, suf_tab, s):
             prev = pos_set_list_head
         else:
             new_node = Node(pos_set)
-            new_node.set_next(prev.get_next())
-            prev.set_next(new_node)
+            new_node.next = prev.next
+            prev.next = new_node
             prev = new_node
 
         curr = pos_set_list_head
 
         while curr is not None:
-            last_pos_set = curr.get_data()
+            last_pos_set = curr.data
 
             for i in range(0, 26):
                 for k in range(0, 26):
@@ -133,9 +94,9 @@ def process(lcp_interval: Interval, suf_tab, s):
                             print(f"(%s, %s), (%s, %s)" % (
                                 p, p + lcp - 1, p_prime, p_prime + lcp - 1))
 
-            curr = curr.get_next()
+            curr = curr.next
 
-    lcp_interval.set_pos_sets(pos_set_list_head)
+    lcp_interval.pos_sets = pos_set_list_head
 
 
 def perform_bottom_up_traversal(s, suftab, lcp_table):
@@ -148,25 +109,25 @@ def perform_bottom_up_traversal(s, suftab, lcp_table):
         lb = i - 1
         top: Interval = stack.top()
 
-        while lcp_table[i] < top.get_lcp_value():
-            top.set_rb(i - 1)
+        while lcp_table[i] < top.lcp_value:
+            top.rb = i - 1
             last_interval: Interval = stack.pop()
 
             process(last_interval, suftab, s)
 
-            lb: int = last_interval.get_lb()
+            lb: int = last_interval.lb
             top = stack.top()
 
-            if lcp_table[i] <= top.get_lcp_value():
+            if lcp_table[i] <= top.lcp_value:
                 top.update_child_list(last_interval)
                 last_interval = None
 
-        if lcp_table[i] > top.get_lcp_value():
+        if lcp_table[i] > top.lcp_value:
             if last_interval is not None:
                 stack.push(Interval(lcp_table[i], lb, -1, [last_interval]))
                 last_interval = None
             else:
                 stack.push(Interval(lcp_table[i], lb, -1, []))
 
-    stack.top().set_rb(len(lcp_table))
+    stack.top().rb = len(lcp_table)
     process(stack.pop(), suftab, s)
