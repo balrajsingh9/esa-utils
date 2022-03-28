@@ -21,7 +21,7 @@ class Interval:
         self.child_list.append(interval)
 
     def __str__(self):
-        return f"lb=%s, rb=%s, lcp_value=%s" % (self.lb, self.rb, self.lcp_value)
+        return "lb=%s, rb=%s, lcp_value=%s" % (self.lb, self.rb, self.lcp_value)
 
 
 def add(top_interval: Interval, last_interval: Interval):
@@ -91,7 +91,7 @@ def process(lcp_interval: Interval, suf_tab, s):
                         p_prime = pos_set[k]
 
                         if p < p_prime:
-                            print(f"(%s, %s), (%s, %s)" % (
+                            print("(%s, %s), (%s, %s)" % (
                                 p, p + lcp - 1, p_prime, p_prime + lcp - 1))
 
             curr = curr.next
