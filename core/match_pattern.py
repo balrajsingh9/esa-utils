@@ -9,7 +9,7 @@ class Child:
     next_l_index: int = -1
 
     def __str__(self):
-        return "up=%s, down=%s, nextLIndex=%s" % (self.up, self.down, self.next_l_index)
+        return f"up={self.up}, down={self.down}, nextLIndex={self.next_l_index}"
 
 
 def compute_up_and_down_values(child_table, lcp_table):
