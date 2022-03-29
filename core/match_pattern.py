@@ -1,29 +1,15 @@
+from dataclasses import dataclass
+from typing import Tuple
+
+
+@dataclass
 class Child:
-    def __init__(self):
-        self.__up = -1
-        self.__down = -1
-        self.__nextLIndex = -1
-
-    def set_up(self, up: int):
-        self.__up = up
-
-    def set_down(self, down: int):
-        self.__down = down
-
-    def set_next_l_index(self, nextLIndex: int):
-        self.__nextLIndex = nextLIndex
-
-    def get_up(self):
-        return self.__up
-
-    def get_down(self):
-        return self.__down
-
-    def get_next_l_index(self):
-        return self.__nextLIndex
+    up: int = -1
+    down: int = -1
+    next_l_index: int = -1
 
     def __str__(self):
-        return f"up=%s, down=%s, nextLIndex=%s" % (self.__up, self.__down, self.__nextLIndex)
+        return f"up={self.up}, down={self.down}, nextLIndex={self.next_l_index}"
 
 
 def compute_up_and_down_values(child_table, lcp_table):
@@ -38,10 +24,10 @@ def compute_up_and_down_values(child_table, lcp_table):
             top = stack[len(stack) - 1]
 
             if (lcp_table[i] <= lcp_table[top]) and (lcp_table[top] != lcp_table[last_idx]):
-                child_table[top].set_down(last_idx)
+                child_table[top].down = last_idx
 
         if last_idx != -1:
-            child_table[i].set_up(last_idx)
+            child_table[i].up = last_idx
             last_idx = -1
 
         stack.append(i)
@@ -59,7 +45,7 @@ def compute_next_l_indices(child_table, lcp_tab):
 
         if lcp_tab[i] == lcp_tab[top]:
             last_idx = stack.pop()
-            child_table[last_idx].set_next_l_index(i)
+            child_table[last_idx].next_l_index = i
 
         stack.append(i)
 
@@ -73,30 +59,29 @@ def compute_child_table(suf_tab, lcp_tab):
     compute_up_and_down_values(child_table, lcp_tab)
     compute_next_l_indices(child_table, lcp_tab)
 
-    for i in range(0, len(child_table)):
-        print(child_table[i])
-
     return child_table
 
 
-def get_child_intervals(i, j, child_tab: list[Child]):
+def get_child_intervals(i, j, child_tab: list[Child]) -> list[Tuple[int, int]]:
     intervals = []
-
-    if i == 0 and j == len(child_tab):
-        return intervals
-
     i_1: int = -1
     i_2: int = -1
 
-    if i < child_tab[j + 1].get_up() <= j:
-        i_1 = child_tab[j + 1].get_up()
+    if i == 0 and j == len(child_tab):
+        i_1 = child_tab[i].next_l_index
+    elif (j + 1 < len(child_tab)) and i < child_tab[j + 1].up <= j:
+        i_1 = child_tab[j + 1].up
     else:
-        i_1 = child_tab[i].get_down()
+        i_1 = child_tab[i].down
+
+    # has no children
+    if i_1 == -1:
+        return intervals
 
     intervals.append((i, i_1 - 1))
 
-    while child_tab[i_1].get_next_l_index() != -1:
-        i_2 = child_tab[i_1].get_next_l_index()
+    while child_tab[i_1].next_l_index != -1:
+        i_2 = child_tab[i_1].next_l_index
 
         intervals.append((i_1, i_2 - 1))
 
@@ -108,13 +93,13 @@ def get_child_intervals(i, j, child_tab: list[Child]):
 
 
 def get_lcp(i, j, child_table: list[Child], lcp_tab):
-    if (i < child_table[j + 1].get_up()) and (child_table[j + 1].get_up() <= j):
-        return lcp_tab[child_table[j + 1].get_up()]
+    if (i < child_table[j + 1].up) and (child_table[j + 1].up <= j):
+        return lcp_tab[child_table[j + 1].up]
     else:
-        return lcp_tab[child_table[i].get_down()]
+        return lcp_tab[child_table[i].down]
 
 
 def perform_top_down_traversal(s, p, suf_tap, lcp_tab):
     child_table = compute_child_table(suf_tap, lcp_tab)
-    intervals: list[(int, int)] = get_child_intervals(0, 5, child_table)
+    intervals: list[Tuple[int, int]] = get_child_intervals(0, len(child_table), child_table)
     print(intervals)
