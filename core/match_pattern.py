@@ -87,6 +87,7 @@ def get_interval(i, j, a, s, child_tab: list[Child], lcp_tab: list[int], suf_tab
     if i_1 == -1:
         return -1, -1
 
+    # runs in infinite loop for some test cases, so still returning (lb, rb - 1) instead of (lb, rb)
     if is_interval_eligible(a, i, lcp, s, suf_tab):
         return i, i_1 - 1
 
