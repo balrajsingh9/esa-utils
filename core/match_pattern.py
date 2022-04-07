@@ -8,11 +8,11 @@ class Child:
     down: int = -1
     next_l_index: int = -1
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "up=%s, down=%s, nextLIndex=%s" % (self.up, self.down, self.next_l_index)
 
 
-def compute_up_and_down_values(child_table, lcp_table):
+def compute_up_and_down_values(child_table: list[Child], lcp_table: list[int]):
     last_idx = -1
     stack: list[int] = [0]
 
@@ -33,7 +33,7 @@ def compute_up_and_down_values(child_table, lcp_table):
         stack.append(i)
 
 
-def compute_next_l_indices(child_table, lcp_tab):
+def compute_next_l_indices(child_table: list[Child], lcp_tab: list[int]):
     stack: list[int] = [0]
 
     for i in range(1, len(lcp_tab)):
@@ -50,7 +50,7 @@ def compute_next_l_indices(child_table, lcp_tab):
         stack.append(i)
 
 
-def compute_child_table(suf_tab, lcp_tab):
+def compute_child_table(lcp_tab: list[int]):
     child_table: list[Child] = []
 
     for i in range(0, len(lcp_tab)):
@@ -62,13 +62,26 @@ def compute_child_table(suf_tab, lcp_tab):
     return child_table
 
 
-def is_interval_eligible(a, i, lcp, s, suf_tab) -> bool:
+def is_interval_eligible(a: str, i: int, lcp: int, s: str, suf_tab: list[int]) -> bool:
     idx_to_hit = suf_tab[i]
 
     return s[idx_to_hit + lcp] == a
 
 
-def get_interval(i, j, a, s, child_tab: list[Child], lcp_tab: list[int], suf_tab: list[int]) -> Tuple[int, int]:
+def get_lcp(i: int, j: int, child_tab: list[Child], lcp_tab: list[int]):
+    assert i > -1 and j <= len(child_tab)
+
+    # root interval
+    if i == 0 and j == len(child_tab):
+        return 0
+    elif len(child_tab) > j > child_tab[j].up > i:
+        return lcp_tab[child_tab[j].up]
+    else:
+        return lcp_tab[child_tab[i].down]
+
+
+def get_interval(i: int, j: int, a: str, s: str, child_tab: list[Child],
+                 lcp_tab: list[int], suf_tab: list[int]) -> Tuple[int, int]:
     i_1: int = -1
     i_2: int = -1
 
@@ -106,7 +119,12 @@ def get_interval(i, j, a, s, child_tab: list[Child], lcp_tab: list[int], suf_tab
     return -1, -1
 
 
-def match_pattern(s, p, child_tab, lcp_tab, suf_tab) -> bool:
+def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], suf_tab: list[int]) -> bool:
+    # considering empty pattern to be a valid string; returns false if the string s is non-empty
+    if len(p) == 0:
+        # len(s) == 1 is empty because we consider sentinel char $ at the end
+        return len(s) == 1
+
     c: int = 0
     pattern_found: bool = True
     (n, m) = (len(s), len(p))
@@ -136,23 +154,7 @@ def match_pattern(s, p, child_tab, lcp_tab, suf_tab) -> bool:
     return pattern_found
 
 
-def get_lcp(i, j, child_tab: list[Child], lcp_tab):
-    assert i > -1 and j <= len(child_tab)
+def find_pattern(s: str, p: str, suf_tab: list[int], lcp_tab: list[int]) -> bool:
+    child_tab: list[Child] = compute_child_table(lcp_tab)
 
-    # root interval
-    if i == 0 and j == len(child_tab):
-        return 0
-    elif len(child_tab) > j > child_tab[j].up > i:
-        return lcp_tab[child_tab[j].up]
-    else:
-        return lcp_tab[child_tab[i].down]
-
-
-def perform_top_down_traversal(s, p, suf_tab, lcp_tab):
-    child_tab = compute_child_table(suf_tab, lcp_tab)
-    # print(get_interval(0, 10, 'a', s, child_tab, lcp_tab, suf_tab))
-
-    if match_pattern(s, p, child_tab, lcp_tab, suf_tab):
-        print("Pattern found")
-    else:
-        print("Pattern not found")
+    return match_pattern(s, p, child_tab, lcp_tab, suf_tab)
