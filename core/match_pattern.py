@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Tuple
 
 
 @dataclass
@@ -69,23 +68,23 @@ def is_interval_eligible(a: str, i: int, lcp: int, s: str, suf_tab: list[int]) -
 
 
 def get_lcp(i: int, j: int, child_tab: list[Child], lcp_tab: list[int]):
-    assert i > -1 and j <= len(child_tab)
+    assert 0 <= i and 0 <= j <= len(child_tab)
 
     # root interval
     if i == 0 and j == len(child_tab):
         return 0
-    elif len(child_tab) > j > child_tab[j].up > i:
+    elif i < child_tab[j].up < j:
         return lcp_tab[child_tab[j].up]
     else:
         return lcp_tab[child_tab[i].down]
 
 
 def get_interval(i: int, j: int, a: str, s: str, child_tab: list[Child],
-                 lcp_tab: list[int], suf_tab: list[int]) -> Tuple[int, int]:
+                 lcp_tab: list[int], suf_tab: list[int]) -> tuple[int, int]:
     i_1: int = -1
     i_2: int = -1
 
-    assert i > -1 and j <= len(child_tab)
+    assert 0 <= i and 0 <= j <= len(child_tab)
 
     lcp = get_lcp(i, j, child_tab, lcp_tab)
 
@@ -142,6 +141,7 @@ def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], su
                 return s[suf_tab[i] + c - 1] == p[c - 1:]
 
             (i, j) = get_interval(i, j, p[c], s, child_tab, lcp_tab, suf_tab)
+
         else:
             # check for the last block that is left
             pattern_found = s[suf_tab[i] + c - 1: suf_tab[i] + m] == p[c - 1:]
