@@ -126,8 +126,8 @@ def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], su
 
     c: int = 0
     pattern_found: bool = True
-    (n, m) = (len(s), len(p))
-    (i, j) = get_interval(0, n, p[c], s, child_tab, lcp_tab, suf_tab)
+    n, m = len(s), len(p)
+    i, j = get_interval(0, n, p[c], s, child_tab, lcp_tab, suf_tab)
 
     while i != -1 and j != -1 and c < m and pattern_found is True:
         if i != j:
@@ -140,7 +140,7 @@ def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], su
                 # check for the last character to match
                 return s[suf_tab[i] + c - 1] == p[c - 1:]
 
-            (i, j) = get_interval(i, j, p[c], s, child_tab, lcp_tab, suf_tab)
+            i, j = get_interval(i, j, p[c], s, child_tab, lcp_tab, suf_tab)
 
         else:
             # check for the last block that is left
