@@ -6,7 +6,7 @@ from typing import Optional
 
 @dataclass
 class Node:
-    data: list[int]
+    data: dict[str, int]
     next: Optional[Node] = None
 
 
@@ -45,14 +45,16 @@ class SpecialStack:
         return len(self.__stack) == 0
 
 
+repeats_set = set()
+
 def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
     pos_set_list_head: Optional[Node] = None
     prev: Optional[Node] = None
-
+    alphabet_set: set[str] = set(s)
+    alphabet_pos_map: dict[str, int] = {alphabet: -1 for alphabet in alphabet_set}
     lcp: int = lcp_interval.lcp_value
 
     for j in range(0, len(lcp_interval.child_list)):
-        pos_set: list[int] = [-1] * 26
         child_interval: Interval = lcp_interval.child_list[j]
         p_set: set[int] = set()
         lb: int = child_interval.lb
@@ -61,16 +63,16 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
         for i in range(lb, rb + 1):
             p_set.add(suf_tab[i])
 
-        for i in range(0, 26):
+        for alphabet in alphabet_set:
             for p in p_set:
-                if p != 0 and (s[p - 1] == chr(i + 97)):
-                    pos_set[i] = p
+                if p != 0 and (s[p - 1] == alphabet):
+                    alphabet_pos_map[alphabet] = p
 
         if pos_set_list_head is None:
-            pos_set_list_head = Node(pos_set)
+            pos_set_list_head = Node(alphabet_pos_map)
             prev = pos_set_list_head
         else:
-            new_node = Node(pos_set)
+            new_node = Node(alphabet_pos_map)
             new_node.next = prev.next
             prev.next = new_node
             prev = new_node
@@ -78,16 +80,21 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
         curr = pos_set_list_head
 
         while curr is not None:
-            last_pos_set = curr.data
+            last_alphabet_pos_map: dict[str, int] = curr.data
 
-            for i in range(0, 26):
-                for k in range(0, 26):
-                    p = last_pos_set[i]
-                    if i != k and last_pos_set[i] != -1 and pos_set[k] != -1:
-                        p_prime = pos_set[k]
+            for a in alphabet_set:
+                for b in alphabet_set:
+                    p = last_alphabet_pos_map[a]
 
-                        if p < p_prime:
-                            print(f"({p}, {p + lcp - 1}), ({p_prime}, {p_prime + lcp - 1})")
+                    if a != b and last_alphabet_pos_map[a] != -1 and alphabet_pos_map[b] != -1:
+                        p_prime = alphabet_pos_map[b]
+
+                        # print(f"({p}, {p + lcp}), ({p_prime}, {p_prime + lcp})")
+                        left: str = s[p: p + lcp + 1]
+                        right: str = s[p_prime: p_prime + lcp + 1]
+
+                        if left == right:
+                            repeats_set.add((left, right))
 
             curr = curr.next
 
@@ -103,6 +110,7 @@ def perform_bottom_up_traversal(s, suf_tab, lcp_table) -> None:
     for i in range(1, len(lcp_table)):
         lb: int = i - 1
         top: Interval = stack.top()
+
         while lcp_table[i] < top.lcp_value:
             top.rb = i - 1
             last_interval: Interval = stack.pop()
@@ -125,3 +133,4 @@ def perform_bottom_up_traversal(s, suf_tab, lcp_table) -> None:
 
     stack.top().rb = len(lcp_table)
     process(stack.pop(), suf_tab, s)
+    print(repeats_set)
