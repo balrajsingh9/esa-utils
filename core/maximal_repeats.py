@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
 class Node:
     data: list[int]
-    next: Node | None = None
+    next: Optional[Node] = None
 
 
 @dataclass
@@ -20,47 +21,42 @@ class Interval:
     def update_child_list(self, interval: Interval) -> None:
         self.child_list.append(interval)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"lb={self.rb}, rb={self.rb}, lcp_value={self.lcp_value}"
 
 
-def add(top_interval: Interval, last_interval: Interval):
-    top_interval.update_child_list(last_interval)
-
-
 class SpecialStack:
-    def __init__(self):
+    def __init__(self) -> None:
         self.__stack = []
 
-    def top(self):
+    def top(self) -> Interval:
         if len(self.__stack) == 0:
             raise Exception("Trying to access top on an empty stack")
         else:
             return self.__stack[-1]
 
-    def pop(self):
+    def pop(self) -> Interval:
         return self.__stack.pop()
 
-    def push(self, interval: Interval):
+    def push(self, interval: Interval) -> None:
         self.__stack.append(interval)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return len(self.__stack) == 0
 
 
-def process(lcp_interval: Interval, suf_tab, s):
-    pos_set_list_head = None
-    prev = None
+def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
+    pos_set_list_head: Optional[Node] = None
+    prev: Optional[Node] = None
 
-    pos_set = []
-    lcp = lcp_interval.lcp_value
+    lcp: int = lcp_interval.lcp_value
 
     for j in range(0, len(lcp_interval.child_list)):
-        pos_set = [-1] * 26
+        pos_set: list[int] = [-1] * 26
         child_interval: Interval = lcp_interval.child_list[j]
-        p_set = set()
-        lb = child_interval.lb
-        rb = child_interval.rb
+        p_set: set[int] = set()
+        lb: int = child_interval.lb
+        rb: int = child_interval.rb
 
         for i in range(lb, rb + 1):
             p_set.add(suf_tab[i])
@@ -98,24 +94,23 @@ def process(lcp_interval: Interval, suf_tab, s):
     lcp_interval.pos_sets = pos_set_list_head
 
 
-def perform_bottom_up_traversal(s, suftab, lcp_table):
-    last_interval: Interval | None = None
+def perform_bottom_up_traversal(s, suf_tab, lcp_table) -> None:
+    last_interval: Optional[Interval] = None
     stack: SpecialStack = SpecialStack()
 
     stack.push(Interval())
 
     for i in range(1, len(lcp_table)):
-        lb = i - 1
+        lb: int = i - 1
         top: Interval = stack.top()
-
         while lcp_table[i] < top.lcp_value:
             top.rb = i - 1
             last_interval: Interval = stack.pop()
 
-            process(last_interval, suftab, s)
+            process(last_interval, suf_tab, s)
 
             lb: int = last_interval.lb
-            top = stack.top()
+            top: Interval = stack.top()
 
             if lcp_table[i] <= top.lcp_value:
                 top.update_child_list(last_interval)
@@ -129,4 +124,4 @@ def perform_bottom_up_traversal(s, suftab, lcp_table):
                 stack.push(Interval(lcp_table[i], lb, -1, []))
 
     stack.top().rb = len(lcp_table)
-    process(stack.pop(), suftab, s)
+    process(stack.pop(), suf_tab, s)
