@@ -1,4 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import Optional
+
+MatchResult = Optional[tuple[int, int]]
 
 
 @dataclass
@@ -118,43 +123,51 @@ def get_interval(i: int, j: int, a: str, s: str, child_tab: list[Child],
     return -1, -1
 
 
-def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], suf_tab: list[int]) -> bool:
+def comp_prefix_len(s: str, p: str, x_offset: int, y_offset: int, max_len: int | None = None) -> int:
+    max_len = max_len or min(len(p) - x_offset, len(s) - y_offset)
+
+    for prefix, i in enumerate(range(max_len)):
+        if p[x_offset + i] != s[y_offset + i]:
+            return prefix
+
+    return max_len
+
+
+def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], suf_tab: list[int]) -> MatchResult:
     # considering empty pattern to be a valid string; returns false if the string s is non-empty
     if len(p) == 0:
-        # len(s) == 1 is empty because we consider sentinel char $ at the end
-        return len(s) == 1
+        return 0, len(s) if len(s) > 1 else None
 
-    c: int = 0
-    pattern_found: bool = True
-    n, m = len(s), len(p)
-    i, j = get_interval(0, n, p[c], s, child_tab, lcp_tab, suf_tab)
+    matched: int = 0
+    i, j = get_interval(0, len(s), p[0], s, child_tab, lcp_tab, suf_tab)
 
-    while i != -1 and j != -1 and c < m and pattern_found is True:
-        if i != j:
-            lcp: int = get_lcp(i, j, child_tab, lcp_tab)
-            min_val: int = min(lcp, m)
-            pattern_found = s[suf_tab[i] + c: suf_tab[i] + min_val - 1] == p[c: min_val - 1]
-            c = min_val
+    while matched < len(p):
+        if i == j:
+            return None
 
-            if c == m:
-                # check for the last character to match
-                return s[suf_tab[i] + c - 1] == p[c - 1:]
+        if i + 1 == j:
+            matched += comp_prefix_len(s, p, matched, suf_tab[i] + matched)
+            if matched != len(p):
+                return None
+            else:
+                return i, j
 
-            i, j = get_interval(i, j, p[c], s, child_tab, lcp_tab, suf_tab)
+        lcp: int = get_lcp(i, j, child_tab, lcp_tab)
+        to_match: int = min(len(p) - matched, lcp)
+        match: int = comp_prefix_len(s, p, matched, suf_tab[i] + matched, to_match)
 
-        else:
-            # check for the last block that is left
-            pattern_found = s[suf_tab[i] + c - 1: suf_tab[i] + m] == p[c - 1:]
+        if match < to_match:
+            return None
 
-            # can safely return from here I think
-            return pattern_found
+        matched += match
 
-    pattern_found = i != -1 and j != -1
+        if matched < len(p):
+            i, j = get_interval(i, j, p[matched], s, child_tab, lcp_tab, suf_tab)
 
-    return pattern_found
+    return i, j
 
 
-def find_pattern(s: str, p: str, suf_tab: list[int], lcp_tab: list[int]) -> bool:
+def find_pattern(s: str, p: str, suf_tab: list[int], lcp_tab: list[int]) -> MatchResult:
     child_tab: list[Child] = compute_child_table(lcp_tab)
 
     return match_pattern(s, p, child_tab, lcp_tab, suf_tab)
