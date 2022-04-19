@@ -4,6 +4,9 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
+repeats_set: set[tuple[str, str]] = set()
+
+
 @dataclass
 class Node:
     data: dict[str, int]
@@ -45,17 +48,19 @@ class SpecialStack:
         return len(self.__stack) == 0
 
 
-repeats_set = set()
-
 def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
+    # linked list to union the position sets and save it to the parent node(propagate)
     pos_set_list_head: Optional[Node] = None
     prev: Optional[Node] = None
+    # init the alphabet set over the input string
     alphabet_set: set[str] = set(s)
+    # init the dict that maps the alphabet to a pos p, -1 is for undefined at init
     alphabet_pos_map: dict[str, int] = {alphabet: -1 for alphabet in alphabet_set}
     lcp: int = lcp_interval.lcp_value
 
     for j in range(0, len(lcp_interval.child_list)):
         child_interval: Interval = lcp_interval.child_list[j]
+        # position set for this child
         p_set: set[int] = set()
         lb: int = child_interval.lb
         rb: int = child_interval.rb
@@ -68,9 +73,11 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
                 if p != 0 and (s[p - 1] == alphabet):
                     alphabet_pos_map[alphabet] = p
 
+        # if this is the first child in this subtree
         if pos_set_list_head is None:
             pos_set_list_head = Node(alphabet_pos_map)
             prev = pos_set_list_head
+        # start linking the previous position sets to be used by the next child
         else:
             new_node = Node(alphabet_pos_map)
             new_node.next = prev.next
@@ -79,6 +86,7 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
 
         curr = pos_set_list_head
 
+        # start processing all the position sets collected up to this child interval
         while curr is not None:
             last_alphabet_pos_map: dict[str, int] = curr.data
 
@@ -93,18 +101,23 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str) -> None:
                         left: str = s[p: p + lcp + 1]
                         right: str = s[p_prime: p_prime + lcp + 1]
 
+                        # without this, I see abnormal pairs...don't know if this is ok to do?
                         if left == right:
                             repeats_set.add((left, right))
 
             curr = curr.next
 
+    # finally, propagate the computed position sets to the parent interval
     lcp_interval.pos_sets = pos_set_list_head
 
 
-def perform_bottom_up_traversal(s, suf_tab, lcp_table) -> None:
+def perform_bottom_up_traversal(s, suf_tab, lcp_table) -> set[tuple[str, str]]:
+    # add the sentinel
+    s = s + '$'
     last_interval: Optional[Interval] = None
     stack: SpecialStack = SpecialStack()
 
+    # init stack with an empty interval
     stack.push(Interval())
 
     for i in range(1, len(lcp_table)):
@@ -115,6 +128,7 @@ def perform_bottom_up_traversal(s, suf_tab, lcp_table) -> None:
             top.rb = i - 1
             last_interval: Interval = stack.pop()
 
+            # we know the child intervals now, process this subtree
             process(last_interval, suf_tab, s)
 
             lb: int = last_interval.lb
@@ -126,11 +140,15 @@ def perform_bottom_up_traversal(s, suf_tab, lcp_table) -> None:
 
         if lcp_table[i] > top.lcp_value:
             if last_interval is not None:
+                # -1 here represents undefined or bottom value
                 stack.push(Interval(lcp_table[i], lb, -1, [last_interval]))
                 last_interval = None
             else:
                 stack.push(Interval(lcp_table[i], lb, -1, []))
 
     stack.top().rb = len(lcp_table)
+
+    # process the root
     process(stack.pop(), suf_tab, s)
-    print(repeats_set)
+
+    return repeats_set
