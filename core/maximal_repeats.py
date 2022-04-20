@@ -134,9 +134,4 @@ def find_maximal_repeats(s: str, suf_tab: list[int], lcp_table: list[int], bwt_t
             else:
                 stack.push(Interval(lcp_table[i], lb, -1, []))
 
-    stack.top().rb = len(lcp_table)
-
-    # process the root
-    process(stack.pop(), suf_tab, s, bwt_table)
-
     return repeats_set

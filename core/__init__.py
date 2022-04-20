@@ -9,5 +9,4 @@ if __name__ == '__main__':
 
     for repeat in repeats_set:
         ((i_1, j_1), (i_2, j_2)) = repeat
-        if i_1 <= j_1 and i_2 <= j_2:
-            print(f"({s[i_1:j_1 + 1]}, {s[i_2:j_2 + 1]})")
+        print(f"({s[i_1:j_1 + 1]}, {s[i_2:j_2 + 1]})")
