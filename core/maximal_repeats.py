@@ -57,8 +57,7 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str, bwt_table: list[
     alphabet_pos_map: dict[str, int] = {alphabet: -1 for alphabet in alphabet_set}
     lcp = lcp_interval.lcp_value
 
-    for j in range(0, len(lcp_interval.child_list)):
-        child_interval: Interval = lcp_interval.child_list[j]
+    for child_interval in lcp_interval.child_list:
         lb: int = child_interval.lb
         rb: int = child_interval.rb
 
