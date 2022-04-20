@@ -54,7 +54,7 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str, bwt_table: list[
     # init the alphabet set over the input string
     alphabet_set: set[str] = set(s)
     # init the dict that maps the alphabet to a pos p, -1 is for undefined at init
-    alphabet_pos_map: dict[str, int] = {alphabet: 0 for alphabet in alphabet_set}
+    alphabet_pos_map: dict[str, int] = {alphabet: -1 for alphabet in alphabet_set}
     lcp = lcp_interval.lcp_value
 
     for j in range(0, len(lcp_interval.child_list)):
@@ -66,8 +66,6 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str, bwt_table: list[
             for i in range(lb, rb + 1):
                 if bwt_table[i] == alphabet:
                     alphabet_pos_map[alphabet] = suf_tab[i]
-
-        print(alphabet_pos_map)
 
         # if this is the first child in this subtree
         if pos_set_list_head is None:
