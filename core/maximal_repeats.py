@@ -98,7 +98,7 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str, bwt_table: list[
     lcp_interval.pos_sets = pos_set_list_head
 
 
-def perform_bottom_up_traversal(s: str, suf_tab: list[int], lcp_table: list[int], bwt_table: list[str]) -> \
+def find_maximal_repeats(s: str, suf_tab: list[int], lcp_table: list[int], bwt_table: list[str]) -> \
         set[tuple[tuple[int, int], tuple[int, int]]]:
     # add the sentinel
     s = s + '$'
