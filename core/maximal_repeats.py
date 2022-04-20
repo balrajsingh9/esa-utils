@@ -89,7 +89,7 @@ def process(lcp_interval: Interval, suf_tab: list[int], s: str, bwt_table: list[
                         p = last_alphabet_pos_map[a]
                         p_prime = alphabet_pos_map[b]
 
-                        if p < p_prime and bwt_table[p] != bwt_table[p_prime]:
+                        if p < p_prime != -1 and p != -1 and bwt_table[p] != bwt_table[p_prime]:
                             repeats_set.add(((p, p + lcp - 1), (p_prime, p_prime + lcp - 1)))
 
             curr = curr.next
