@@ -12,17 +12,22 @@ class Node:
     depth: int = -1
     parent: Optional[Node] = None
 
+    def __str__(self) -> str:
+        return f"children={list(self.children.keys())}"
+
 
 def create_node(s: str, u: Node, depth: int) -> Node:
-    old_p = u.parent
+    start = u.start
+    parent = u.parent
     v = Node()
-    v.start = u.start
+    v.start = start
     v.depth = depth
-    v.children[s[u.start + depth]] = u
 
+    v.children[s[start + depth]] = u
     u.parent = v
-    old_p.children[s[v.start + old_p.depth]] = v
-    v.parent = old_p
+
+    parent.children[s[start + parent.depth]] = v
+    v.parent = parent
 
     return v
 
@@ -45,7 +50,7 @@ def compute_s_link(s: str, u: Node) -> None:
 
     # if no node at (v, d - 1), then create one
     if v.depth > d - 1:
-        create_node(s, v, d - 1)
+        v = create_node(s, v, d - 1)
 
     u.s_link = v
 
@@ -63,15 +68,14 @@ class STree:
         Construct a suffix tree for string s using McCreight's linear time algorithm
         as described here: https://www.cs.helsinki.fi/u/tpkarkka/opetus/13s/spa/lecture10-2x4.pdf
         """
-        s = s + '$'
+        s += '$'
 
         u = self.root
         d = 0
 
         for i in range(len(s)):
-            suffix = s[i + d]
-            while d == u.depth and suffix in u.children:
-                u = u.children[suffix]
+            while d == u.depth and s[i + d] in u.children:
+                u = u.children[s[i + d]]
                 d += 1
 
                 while d < u.depth and s[u.start + d] == s[i + d]:
@@ -87,4 +91,3 @@ class STree:
 
             u = u.s_link
             d = max(0, d - 1)
-
