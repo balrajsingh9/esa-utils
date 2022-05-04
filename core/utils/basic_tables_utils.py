@@ -27,7 +27,7 @@ Compute lcp array using Kasai's Algorithm in linear time
 """
 
 
-def get_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
+def gen_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
     s += '$'
     inv_sa: list[int] = [-1] * len(suf_tab)
 
@@ -51,3 +51,13 @@ def get_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
             lcp = 0
 
     return lcp_array
+
+
+def gen_bwt_array(s: str, suf_tab: list[int]) -> list[str]:
+    s += '$'
+    bwt_array: list[str] = []
+
+    for suf in suf_tab:
+        bwt_array.append(s[suf - 1])
+
+    return bwt_array
