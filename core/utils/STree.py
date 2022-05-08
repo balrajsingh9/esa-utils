@@ -6,27 +6,24 @@ from typing import Optional
 
 @dataclass
 class Node:
-    s_link: Optional[Node] = None
-    children: dict[str, Node] = field(default_factory=dict)
     idx: int = -1
     depth: int = -1
     parent: Optional[Node] = None
+    children: dict[str, Node] = field(default_factory=dict)
+    s_link: Optional[Node] = None
 
     def __str__(self) -> str:
         return f"children={list(self.children.keys())}"
 
 
 def create_node(s: str, u: Node, depth: int) -> Node:
-    start = u.idx
     parent = u.parent
-    v = Node()
-    v.idx = start
-    v.depth = depth
+    v = Node(u.idx, depth, u.parent)
 
-    v.children[s[start + depth]] = u
+    v.children[s[u.idx + depth]] = u
     u.parent = v
 
-    parent.children[s[start + parent.depth]] = v
+    parent.children[s[u.idx + parent.depth]] = v
     v.parent = parent
 
     return v

@@ -10,14 +10,12 @@ def gen_suffix_array(suffix_tree: STree) -> list[int]:
     suf_tab: list[int] = []
 
     def build_sa_using_dfs(node, sa: list[int]):
-        leaf = 1
-
-        for val in sorted(node.children):
-            child = node.children[val]
-            leaf = 0
-            build_sa_using_dfs(child, sa)
-
-        if leaf == 1:
+        if node.children:
+            # Internal node
+            for val in sorted(node.children):
+                build_sa_using_dfs(node.children[val], sa)
+        else:
+            # Leaf
             sa.append(node.idx)
 
     build_sa_using_dfs(suffix_tree.root, suf_tab)
