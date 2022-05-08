@@ -1,9 +1,12 @@
 from core.utils.STree import STree
 
 
-def gen_suffix_array(s: str) -> list[int]:
-    suffix_tree = STree()
-    suffix_tree.build_using_mccreight(s)
+def gen_suffix_array(suffix_tree: STree) -> list[int]:
+    """
+    Computes a suffix array using dfs over a suffix tree
+    :param suffix_tree: suffix tree to perform dfs over
+    :return: a suffix array
+    """
     suf_tab: list[int] = []
 
     def build_sa_using_dfs(node, sa: list[int]):
@@ -15,19 +18,20 @@ def gen_suffix_array(s: str) -> list[int]:
             build_sa_using_dfs(child, sa)
 
         if leaf == 1:
-            sa.append(node.start)
+            sa.append(node.idx)
 
     build_sa_using_dfs(suffix_tree.root, suf_tab)
 
     return suf_tab
 
 
-"""
-Compute lcp array using Kasai's Algorithm in linear time
-"""
-
-
 def gen_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
+    """
+    Computes lcp array using Kasai's Algorithm in linear time
+    :param s: the text for which lcp array is being computed
+    :param suf_tab: suffix array, using which lcp array will be computed
+    :return: the lcp array
+    """
     s += '$'
     inv_sa: list[int] = [-1] * len(suf_tab)
 
@@ -54,6 +58,12 @@ def gen_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
 
 
 def gen_bwt_array(s: str, suf_tab: list[int]) -> list[str]:
+    """
+    computes bwt array using suf_tab
+    :param s: text for which bwt array is being computed
+    :param suf_tab: suffix array for the input text
+    :return: a bwt array for text
+    """
     s += '$'
     bwt_array: list[str] = []
 
