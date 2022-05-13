@@ -104,15 +104,14 @@ def get_interval(i: int, j: int, a: str, s: str, child_tab: list[Child],
     if i_1 == -1:
         return -1, -1
 
-    # runs in infinite loop for some test cases, so still returning (lb, rb - 1) instead of (lb, rb)
     if is_interval_eligible(a, i, lcp, s, suf_tab):
-        return i, i_1 - 1
+        return i, i_1
 
     while child_tab[i_1].next_l_index != -1:
         i_2 = child_tab[i_1].next_l_index
 
         if is_interval_eligible(a, i_1, lcp, s, suf_tab):
-            return i_1, i_2 - 1
+            return i_1, i_2
 
         i_1 = i_2
 
