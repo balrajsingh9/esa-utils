@@ -17,9 +17,9 @@ if __name__ == '__main__':
     suffix_tree.build_using_mccreight(s)
 
     suf_tab = basic_tables_utils.gen_suffix_array(suffix_tree)
-    lcp_tab = basic_tables_utils.gen_lcp_array(s, suf_tab)
-    bwt_tab = basic_tables_utils.gen_bwt_array(s, suf_tab)
-    print(suf_tab)
+    # lcp_tab = basic_tables_utils.gen_lcp_array(s, suf_tab)
+    # bwt_tab = basic_tables_utils.gen_bwt_array(s, suf_tab)
+    # print(suf_tab)
     # print(lcp_tab)
     # print(bwt_tab)
     print("Pattern found" if suffix_tree.search(p) else "Pattern not found")

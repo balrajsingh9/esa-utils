@@ -77,12 +77,11 @@ def perform_search(node: Node, text: str, pattern: str, idx: int) -> int:
 
     if node.idx != 0:
 
-        """
-        We will traverse the edge and match alphabet by alphabet
-        The edge label has length = end - start + 1, where
-        start = node.idx + node.parent.depth
-        end = node.idx + node.depth
-        """
+        # We will traverse the edge and match alphabet by alphabet
+        # The edge label has length = end - start + 1, where
+        # start = node.idx + node.parent.depth
+        # end = node.idx + node.depth
+
         search_res, idx = traverse_edge(text, pattern, idx, node.idx + node.parent.depth, node.idx + node.depth)
 
         if search_res != 0:
@@ -140,3 +139,4 @@ class STree:
         search_res: int = perform_search(self.root, self.text, pattern, 0)
 
         return search_res == 1
+
