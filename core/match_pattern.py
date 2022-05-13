@@ -168,6 +168,7 @@ def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], su
 
 
 def find_pattern(s: str, p: str, suf_tab: list[int], lcp_tab: list[int]) -> MatchResult:
+    s += '$'
     child_tab: list[Child] = compute_child_table(lcp_tab)
 
     return match_pattern(s, p, child_tab, lcp_tab, suf_tab)
