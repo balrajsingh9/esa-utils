@@ -63,25 +63,6 @@ class TestMatchPattern(unittest.TestCase):
         # save the plot in a file, to let tests finish
         plt.savefig(plot_file_name)
 
-    # def test_time_to_search_pattern_using_esa(self):
-    #     start_time = time.time()
-    #     find_pattern(self.s, self.p, self.suf_tab, self.lcp_tab)
-    #     TestMatchPattern.time_taken_using_esa[len(self.p)] = round((time.time() - start_time), 5)
-    #
-    # def test_time_to_search_pattern_using_stree(self):
-    #     start_time = time.time()
-    #     self.stree.search(self.p)
-    #     TestMatchPattern.time_taken_using_stree[len(self.p)] = round((time.time() - start_time), 5)
-    #
-    # def test_time_to_search_patter_rand(self):
-    #     start = time.time()
-    #     find_pattern(self.s, "anana", self.suf_tab, self.lcp_tab)
-    #     TestMatchPattern.time_taken_using_esa[5] = round((time.time() - start), 5)
-    #
-    #     start = time.time()
-    #     self.stree.search("anana")
-    #     TestMatchPattern.time_taken_using_stree[5] = round((time.time() - start), 5)
-
     def test_time_search_valid_sub_str_e_coli_esa(self):
         for pattern in self.patterns:
             start_time = time.time()
