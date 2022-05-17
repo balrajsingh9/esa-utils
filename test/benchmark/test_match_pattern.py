@@ -9,7 +9,7 @@ from core.match_pattern import find_pattern
 from core.utils import basic_tables_utils
 from core.utils.IOUtils import get_seqs_from_file
 from core.utils.STree import STree
-from core.utils.helper import gen_random_substrings
+from core.utils.helper import gen_random_substrings, plot_timings
 
 
 class TestMatchPattern(unittest.TestCase):
@@ -36,32 +36,9 @@ class TestMatchPattern(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        x_esa = sorted(list(TestMatchPattern.time_taken_using_esa.keys()))
-        y_esa = []
+        plot_file_name: str = cls.random_seq.id + "_" + "plot.png"
 
-        for key in x_esa:
-            y_esa.append(TestMatchPattern.time_taken_using_esa[key])
-
-        x_stree = sorted(list(TestMatchPattern.time_taken_using_stree.keys()))
-        y_stree = []
-
-        for key in x_stree:
-            y_stree.append(TestMatchPattern.time_taken_using_stree[key])
-
-        plt.plot(x_esa, y_esa, label="ESA")
-        plt.plot(x_stree, y_stree, label="Suffix Tree")
-
-        plt.xlabel('pattern length')
-        plt.ylabel('Time(s)')
-
-        plt.title('ESA vs Suffix Tree runtime')
-
-        plt.legend(loc="best")
-
-        plot_file_name = "results/" + cls.random_seq.id + "_" + "plot.png"
-
-        # save the plot in a file, to let tests finish
-        plt.savefig(plot_file_name)
+        plot_timings(TestMatchPattern.time_taken_using_esa, TestMatchPattern.time_taken_using_stree, plot_file_name)
 
     def test_time_search_valid_sub_str_e_coli_esa(self):
         for pattern in self.patterns:
