@@ -1,2 +1,4 @@
 # biopython for handling fasta/fastq files
 biopython
+matplotlib~=3.3.4
+setuptools~=49.2.1
