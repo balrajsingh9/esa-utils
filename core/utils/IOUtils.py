@@ -7,8 +7,4 @@ from Bio.SeqRecord import SeqRecord
 
 
 def get_seqs_from_file(file_path, fmt="fasta") -> list[SeqRecord]:
-    seqs = []
-    for seq_record in SeqIO.parse(file_path, fmt):
-        seqs.append(seq_record)
-
-    return seqs
+    return list(SeqIO.parse(file_path, fmt))

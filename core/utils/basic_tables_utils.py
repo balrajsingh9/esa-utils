@@ -23,7 +23,7 @@ def gen_suffix_array(suffix_tree: STree) -> list[int]:
     # assuming '$' is greater than all other alphabet
     # this is to conform the assumption in the paper
     # move position of '$' to suf_tab[len(original_text)]
-    return suf_tab[1:] + suf_tab[0:1]
+    return suf_tab[1:] + [suf_tab[0]]
 
 
 def gen_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
