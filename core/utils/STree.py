@@ -136,6 +136,9 @@ class STree:
         if not self.root:
             return False
 
+        if len(pattern) == 0:
+            return True
+
         search_res: int = perform_search(self.root, self.text, pattern, 0)
 
         return search_res == 1

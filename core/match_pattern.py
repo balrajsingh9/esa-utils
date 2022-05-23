@@ -104,15 +104,14 @@ def get_interval(i: int, j: int, a: str, s: str, child_tab: list[Child],
     if i_1 == -1:
         return -1, -1
 
-    # runs in infinite loop for some test cases, so still returning (lb, rb - 1) instead of (lb, rb)
     if is_interval_eligible(a, i, lcp, s, suf_tab):
-        return i, i_1 - 1
+        return i, i_1
 
     while child_tab[i_1].next_l_index != -1:
         i_2 = child_tab[i_1].next_l_index
 
         if is_interval_eligible(a, i_1, lcp, s, suf_tab):
-            return i_1, i_2 - 1
+            return i_1, i_2
 
         i_1 = i_2
 
@@ -168,6 +167,7 @@ def match_pattern(s: str, p: str, child_tab: list[Child], lcp_tab: list[int], su
 
 
 def find_pattern(s: str, p: str, suf_tab: list[int], lcp_tab: list[int]) -> MatchResult:
+    s += '$'
     child_tab: list[Child] = compute_child_table(lcp_tab)
 
     return match_pattern(s, p, child_tab, lcp_tab, suf_tab)
