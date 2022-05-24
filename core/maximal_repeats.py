@@ -24,7 +24,7 @@ class Interval:
         self.child_list.append(interval)
 
     def __str__(self) -> str:
-        return f"lb={self.rb}, rb={self.rb}, lcp_value={self.lcp_value}"
+        return f"lb={self.lb}, rb={self.rb}, lcp_value={self.lcp_value}, children={self.child_list}"
 
 
 class SpecialStack:
