@@ -5,6 +5,7 @@ from typing import Optional
 
 MaximalRepeats = list[tuple[tuple[int, int], tuple[int, int]]]
 
+
 @dataclass
 class ListNode:
     data: int
@@ -106,6 +107,7 @@ def get_lcp(node: Node) -> int:
 
 
 def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRepeats):
+    # get lcp of parent node
     lcp = get_lcp(node)
     prev_child_pos_list: Optional[dict[str, ListNode]] = None
 
@@ -135,7 +137,7 @@ def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRep
                                 curr_child_itr = curr_child_itr.next
 
                             prev_child_itr = prev_child_itr.next
-
+            # start the union of all prev children pos sets with curr child pos set
             for key in curr_child_pos_list:
                 curr_value = curr_child_pos_list[key]
 
@@ -151,6 +153,7 @@ def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRep
                 else:
                     prev_child_pos_list[key] = curr_value
 
+    # prev_child_pos_list contains the union of all the children pos sets
     node.pos_list = prev_child_pos_list
 
 
