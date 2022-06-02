@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
+MaximalRepeats = list[tuple[tuple[int, int], tuple[int, int]]]
 
 @dataclass
 class ListNode:
@@ -101,7 +102,56 @@ def perform_search(node: Node, text: str, pattern: str, idx: int) -> int:
 
 
 def get_lcp(node: Node) -> int:
-    return 0 if Node is None else (node.idx + node.depth) - (node.idx + node.parent.depth)
+    return 0 if Node is None else (node.parent.idx + node.parent.depth)
+
+
+def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRepeats):
+    lcp = get_lcp(node)
+    prev_child_pos_list: Optional[dict[str, ListNode]] = None
+
+    for val in sorted_children:
+        curr_child = node.children[val]
+        curr_child_pos_list = curr_child.pos_list
+
+        if prev_child_pos_list is None:
+            prev_child_pos_list = curr_child_pos_list
+        else:
+            for curr_key in curr_child_pos_list:
+                for prev_key in prev_child_pos_list:
+                    if prev_key != curr_key:
+                        prev_child_itr = prev_child_pos_list[prev_key]
+                        curr_child_itr_head = curr_child_pos_list[curr_key]
+
+                        while prev_child_itr is not None:
+                            curr_child_itr = curr_child_itr_head
+                            p = prev_child_itr.data
+
+                            while curr_child_itr is not None:
+                                p_prime = curr_child_itr.data
+
+                                if p_prime > p and lcp > 0:
+                                    maximal_repeats.append(((p, p + lcp), (p_prime, p_prime + lcp)))
+
+                                curr_child_itr = curr_child_itr.next
+
+                            prev_child_itr = prev_child_itr.next
+
+            for key in curr_child_pos_list:
+                curr_value = curr_child_pos_list[key]
+
+                if key in prev_child_pos_list:
+                    prev_pos_list_itr = prev_child_pos_list[key]
+
+                    # find the tail of this list indexed by key
+                    while prev_pos_list_itr.next is not None:
+                        prev_pos_list_itr = prev_pos_list_itr.next
+
+                    # link the pos of key found from curr_child to prev_child
+                    prev_pos_list_itr.next = curr_value
+                else:
+                    prev_child_pos_list[key] = curr_value
+
+    node.pos_list = prev_child_pos_list
 
 
 @dataclass
@@ -154,64 +204,18 @@ class STree:
 
         return search_res == 1
 
-    def find_maximal_repeats(self) -> list[tuple[tuple[int, int], tuple[int, int]]]:
-        maximal_repeats: list[tuple[tuple[int, int], tuple[int, int]]] = []
+    def find_maximal_repeats(self) -> MaximalRepeats:
+        maximal_repeats: MaximalRepeats = []
 
-        # todo: modularise and add comments to make the code speak for itself
         def bottom_up_traversal(node):
             if node.children:
                 sorted_children = sorted(node.children)
                 for val in sorted_children:
                     bottom_up_traversal(node.children[val])
 
-                lcp = get_lcp(node)
-                parent_pos_list = node.pos_list
-                prev_child_pos_list: Optional[dict[str, ListNode]] = None
-
-                for val in sorted_children:
-                    curr_child = node.children[val]
-                    curr_child_pos_list = curr_child.pos_list
-
-                    if prev_child_pos_list is None:
-                        prev_child_pos_list = curr_child_pos_list
-                    else:
-                        for curr_key in curr_child_pos_list:
-                            for prev_key in prev_child_pos_list:
-                                if prev_key != curr_key:
-                                    prev_child_value = prev_child_pos_list[prev_key]
-                                    curr_child_value = curr_child_pos_list[curr_key]
-                                    p = prev_child_value.data
-                                    p_prime = curr_child_value.data
-
-                                    if p_prime > p and lcp > 0:
-                                        maximal_repeats.append(((p, p + lcp), (p_prime, p_prime + lcp)))
-
-                        prev_child_pos_list = curr_child_pos_list
-
-                    for key in curr_child_pos_list:
-                        value = curr_child_pos_list[key]
-                        value_itr = value
-
-                        if key in parent_pos_list:
-                            parent_pos_list_itr = parent_pos_list[key]
-                            prev_pos_list_itr: Optional[ListNode] = None
-
-                            while parent_pos_list_itr is not None:
-                                # go to the last node
-                                prev_pos_list_itr = parent_pos_list_itr
-                                parent_pos_list_itr = parent_pos_list_itr.next
-
-                            while value_itr is not None:
-                                prev_pos_list_itr.next = value_itr
-                                value_itr = value_itr.next
-                                prev_pos_list_itr = prev_pos_list_itr.next
-                        else:
-                            parent_pos_list[key] = value_itr
-
+                process_lists(node, sorted_children, maximal_repeats)
             else:
-                # print(node.idx, node.parent, node.parent.depth)
-                if self.text[node.idx - 1] != '$':
-                    node.pos_list[self.text[node.idx - 1]] = ListNode(node.idx)
+                node.pos_list[self.text[node.idx - 1]] = ListNode(node.idx)
 
         bottom_up_traversal(self.root)
 
