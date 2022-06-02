@@ -103,7 +103,7 @@ def perform_search(node: Node, text: str, pattern: str, idx: int) -> int:
 
 
 def get_lcp(node: Node) -> int:
-    return 0 if Node is None else (node.parent.idx + node.parent.depth)
+    return 0 if Node is None else node.depth + node.idx - 1
 
 
 def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRepeats):
@@ -118,6 +118,7 @@ def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRep
         if prev_child_pos_list is None:
             prev_child_pos_list = curr_child_pos_list
         else:
+            # compute maximal repeats by forming a cartesian product of all prev pos set and curr child
             for curr_key in curr_child_pos_list:
                 for prev_key in prev_child_pos_list:
                     if prev_key != curr_key:
@@ -131,8 +132,7 @@ def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRep
                             while curr_child_itr is not None:
                                 p_prime = curr_child_itr.data
 
-                                if p_prime > p and lcp > 0:
-                                    maximal_repeats.append(((p, p + lcp), (p_prime, p_prime + lcp)))
+                                maximal_repeats.append(((p, p + lcp), (p_prime, p_prime + lcp)))
 
                                 curr_child_itr = curr_child_itr.next
 
@@ -216,7 +216,9 @@ class STree:
                 for val in sorted_children:
                     bottom_up_traversal(node.children[val])
 
-                process_lists(node, sorted_children, maximal_repeats)
+                # do not process root
+                if get_lcp(node) > 0:
+                    process_lists(node, sorted_children, maximal_repeats)
             else:
                 node.pos_list[self.text[node.idx - 1]] = ListNode(node.idx)
 
