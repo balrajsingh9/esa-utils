@@ -95,13 +95,15 @@ def process_leaves(lcp_interval: Interval, suf_tab: list[int], bwt_table: list[s
 
 
 def process(lcp_interval: Interval, suf_tab: list[int], bwt_table: list[str]) -> None:
-    # linked list to union the position sets and save it to the parent node(propagate)
+    # this variable saves the union of pos sets of all child intervals of this interval
     prev_child_alphabet_post_sets: PositionSets = {}
     lcp = lcp_interval.lcp_value
 
+    # the smallest interval that has no children is the parent of the leaves under this interval/subtree
     if len(lcp_interval.child_list) == 0:
         process_leaves(lcp_interval, suf_tab, bwt_table)
     else:
+        # process the pos sets propagated to these intervals by their children
         for child_interval in lcp_interval.child_list:
             curr_child_alphabet_pos_sets: PositionSets = child_interval.pos_sets
 
@@ -114,7 +116,6 @@ def process(lcp_interval: Interval, suf_tab: list[int], bwt_table: list[str]) ->
                             curr_alphabet_list_head = curr_child_alphabet_pos_sets[curr_key]
                             prev_alphabet_list_head = prev_child_alphabet_post_sets[prev_key]
                             curr_alphabet_list_ptr = curr_alphabet_list_head
-                            prev_alphabet_list_ptr = prev_alphabet_list_head
 
                             while curr_alphabet_list_ptr is not None:
                                 prev_alphabet_list_ptr = prev_alphabet_list_head
@@ -122,28 +123,28 @@ def process(lcp_interval: Interval, suf_tab: list[int], bwt_table: list[str]) ->
                                     p = prev_alphabet_list_ptr.data
                                     p_prime = curr_alphabet_list_ptr.data
 
-                                    if p_prime > p and lcp > 0:
+                                    if p_prime > p:
                                         maximal_repeats.append(((p, p + lcp), (p_prime, p_prime + lcp)))
 
                                     prev_alphabet_list_ptr = prev_alphabet_list_ptr.next
 
                                 curr_alphabet_list_ptr = curr_alphabet_list_ptr.next
+                # union the lists
                 for key in curr_child_alphabet_pos_sets:
                     curr_child_ptr_itr = curr_child_alphabet_pos_sets[key]
 
+                    # if key is present in prev pos sets, then link the pos set for this key found in this child pos set
                     if key in prev_child_alphabet_post_sets:
-                        last_set = prev_child_alphabet_post_sets[key]
-                        last_set_ptr = last_set
-                        prev_ptr_last_set = last_set
+                        prev_child_ptr = prev_child_alphabet_post_sets[key]
 
-                        while last_set_ptr is not None:
-                            prev_ptr_last_set = last_set_ptr
-                            last_set_ptr = last_set_ptr.next
+                        while prev_child_ptr.next is not None:
+                            prev_child_ptr = prev_child_ptr.next
 
-                        prev_ptr_last_set.next = curr_child_ptr_itr
+                        prev_child_ptr.next = curr_child_ptr_itr
                     else:
                         prev_child_alphabet_post_sets[key] = curr_child_ptr_itr
 
+        # propagate the union of lists after children are processed and all maximal repeats are output
         lcp_interval.pos_sets = prev_child_alphabet_post_sets
 
 
