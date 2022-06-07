@@ -2,11 +2,13 @@ import unittest
 from typing import Optional
 
 from core.match_pattern import find_pattern
+from core.maximal_repeats import find_maximal_repeats
 from core.utils.STree import STree
 from core.utils import basic_tables_utils
 
 
 class TestMatchPattern(unittest.TestCase):
+    bwt_tab = None
     s: Optional[str] = None
     p: Optional[str] = None
     non_existing_pattern: Optional[str] = None

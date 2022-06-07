@@ -3,13 +3,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, Set, Tuple
 
-repeats_set: set[tuple[tuple[int, int], tuple[int, int]]] = set()
+UNDEFINED: int = -1
+alphabet_set: set[str]
 
 
 @dataclass
-class Node:
-    data: dict[str, int]
-    next: Optional[Node] = None
+class ListNode:
+    data: int
+    next: Optional[ListNode] = None
+
+
+PositionSets = dict[str, ListNode]
+Repeats = list[tuple[tuple[int, int], tuple[int, int]]]
+maximal_repeats: Repeats = []
 
 
 @dataclass
@@ -18,13 +24,23 @@ class Interval:
     lb: int = 0
     rb: int = -1
     child_list: list[Interval] = field(default_factory=list)
-    pos_sets: Node = None
+    pos_sets: PositionSets = field(default_factory=dict)
 
-    def update_child_list(self, interval: Interval) -> None:
+    def update_child_list(self, interval: Interval, suf_tab, bwt_tab) -> None:
+        # append leaves for non-root internal nodes
+        if self.lcp_value > 0:
+            for i in range(self.lb, interval.lb):
+                self.child_list.append(Interval(lb=i, rb=i, child_list=[], pos_sets={bwt_tab[i]: ListNode(suf_tab[i])}))
+
         self.child_list.append(interval)
 
+        # append leaves for non-root internal nodes
+        if self.lcp_value > 0:
+            for i in range(interval.rb, self.rb):
+                self.child_list.append(Interval(lb=i, rb=i, child_list=[], pos_sets={bwt_tab[i]: ListNode(suf_tab[i])}))
+
     def __str__(self) -> str:
-        return f"lb={self.rb}, rb={self.rb}, lcp_value={self.lcp_value}"
+        return f"lb={self.lb}, rb={self.rb}, lcp_value={self.lcp_value}, child_list={self.child_list}"
 
 
 class SpecialStack:
@@ -47,61 +63,97 @@ class SpecialStack:
         return len(self.__stack) == 0
 
 
-def process(lcp_interval: Interval, suf_tab: list[int], s: str, bwt_table: list[str]) -> None:
-    # linked list to union the position sets and save it to the parent node(propagate)
-    pos_set_list_head: Optional[Node] = None
-    prev: Optional[Node] = None
-    # init the alphabet set over the input string
-    alphabet_set: set[str] = set(s)
-    # init the dict that maps the alphabet to a pos p, -1 is for undefined at init
-    alphabet_pos_map: dict[str, int] = {alphabet: -1 for alphabet in alphabet_set}
+def process_leaves(lcp_interval: Interval, suf_tab: list[int], bwt_table: list[str]) -> None:
+    lb, rb, lcp = lcp_interval.lb, lcp_interval.rb, lcp_interval.lcp_value
+    parent_pos_sets: PositionSets = {}
+    last_leaf_pos_set: PositionSets = {}
+
+    for i in range(lb, rb + 1):
+        alphabet: str = bwt_table[i]
+        curr_child_pos_set: PositionSets = {alphabet: ListNode(suf_tab[i])}
+
+        if len(last_leaf_pos_set.keys()) == 0:
+            last_leaf_pos_set = curr_child_pos_set
+            parent_pos_sets[alphabet] = curr_child_pos_set[alphabet]
+        else:
+            for prev_key in last_leaf_pos_set:
+                for curr_key in curr_child_pos_set:
+                    if prev_key != curr_key:
+                        p = last_leaf_pos_set[prev_key].data
+                        p_prime = curr_child_pos_set[curr_key].data
+
+                        if p_prime > p and lcp > 0:
+                            maximal_repeats.append(((p, p + lcp), (p_prime, p_prime + lcp)))
+
+            for prev_key in last_leaf_pos_set:
+                for curr_key in curr_child_pos_set:
+                    if prev_key in parent_pos_sets:
+                        parent_pos_sets[prev_key].next = curr_child_pos_set[curr_key]
+                    else:
+                        parent_pos_sets[curr_key] = curr_child_pos_set[curr_key]
+
+    lcp_interval.pos_sets = parent_pos_sets
+
+
+def process(lcp_interval: Interval, suf_tab: list[int], bwt_table: list[str]) -> None:
+    # this variable saves the union of pos sets of all child intervals of this interval
+    prev_child_alphabet_post_sets: PositionSets = {}
     lcp = lcp_interval.lcp_value
 
-    for child_interval in lcp_interval.child_list:
-        lb: int = child_interval.lb
-        rb: int = child_interval.rb
+    # the smallest interval that has no children is the parent of the leaves under this interval/subtree
+    if len(lcp_interval.child_list) == 0:
+        process_leaves(lcp_interval, suf_tab, bwt_table)
+    else:
+        # process the pos sets propagated to these intervals by their children
+        for child_interval in lcp_interval.child_list:
+            curr_child_alphabet_pos_sets: PositionSets = child_interval.pos_sets
 
-        for alphabet in alphabet_set:
-            for i in range(lb, rb + 1):
-                if bwt_table[i] == alphabet:
-                    alphabet_pos_map[alphabet] = suf_tab[i]
+            if len(prev_child_alphabet_post_sets.keys()) == 0:
+                prev_child_alphabet_post_sets = curr_child_alphabet_pos_sets
+            else:
+                for prev_key in prev_child_alphabet_post_sets:
+                    for curr_key in curr_child_alphabet_pos_sets:
+                        if prev_key != curr_key:
+                            prev_key_itr = prev_child_alphabet_post_sets[prev_key]
+                            curr_key_itr_head = curr_child_alphabet_pos_sets[curr_key]
 
-        # if this is the first child in this subtree
-        if pos_set_list_head is None:
-            pos_set_list_head = Node(alphabet_pos_map)
-            prev = pos_set_list_head
-        # start linking the previous position sets to be used by the next child
-        else:
-            new_node = Node(alphabet_pos_map)
-            new_node.next = prev.next
-            prev.next = new_node
-            prev = new_node
+                            while prev_key_itr is not None:
+                                curr_key_itr = curr_key_itr_head
+                                p = prev_key_itr.data
 
-        curr = pos_set_list_head
+                                while curr_key_itr is not None:
+                                    p_prime = curr_key_itr.data
 
-        # start processing all the position sets collected up to this child interval
-        while curr is not None:
-            last_alphabet_pos_map: dict[str, int] = curr.data
+                                    maximal_repeats.append(((p, p + lcp), (p_prime, p_prime + lcp)))
 
-            for a in alphabet_set:
-                for b in alphabet_set:
-                    if a != b:
-                        p = last_alphabet_pos_map[a]
-                        p_prime = alphabet_pos_map[b]
+                                    curr_key_itr = curr_key_itr.next
+                                prev_key_itr = prev_key_itr.next
 
-                        if p < p_prime != -1 and p != -1 and bwt_table[p] != bwt_table[p_prime]:
-                            repeats_set.add(((p, p + lcp - 1), (p_prime, p_prime + lcp - 1)))
+                # union the lists
+                for key in curr_child_alphabet_pos_sets:
+                    curr_child_ptr_itr = curr_child_alphabet_pos_sets[key]
 
-            curr = curr.next
+                    # if key is present in prev pos sets, then link the pos set for this key found in this child pos set
+                    if key in prev_child_alphabet_post_sets:
+                        prev_child_ptr = prev_child_alphabet_post_sets[key]
 
-    # finally, propagate the computed position sets to the parent interval
-    lcp_interval.pos_sets = pos_set_list_head
+                        while prev_child_ptr.next is not None:
+                            prev_child_ptr = prev_child_ptr.next
+
+                        prev_child_ptr.next = curr_child_ptr_itr
+                    else:
+                        prev_child_alphabet_post_sets[key] = curr_child_ptr_itr
+
+        # propagate the union of lists after children are processed and all maximal repeats are output
+        lcp_interval.pos_sets = prev_child_alphabet_post_sets
 
 
-def find_maximal_repeats(s: str, suf_tab: list[int], lcp_table: list[int], bwt_table: list[str]) -> \
-        set[tuple[tuple[int, int], tuple[int, int]]]:
+def find_maximal_repeats(s: str, suf_tab: list[int], lcp_table: list[int], bwt_table: list[str]) -> Repeats:
     # add the sentinel
     s = s + '$'
+    # init the alphabet set over the input string
+    global alphabet_set
+    alphabet_set = set(s)
     last_interval: Optional[Interval] = None
     stack: SpecialStack = SpecialStack()
 
@@ -117,13 +169,13 @@ def find_maximal_repeats(s: str, suf_tab: list[int], lcp_table: list[int], bwt_t
             last_interval: Interval = stack.pop()
 
             # we know the child intervals now, process this subtree
-            process(last_interval, suf_tab, s, bwt_table)
+            process(last_interval, suf_tab, bwt_table)
 
             lb: int = last_interval.lb
             top: Interval = stack.top()
 
             if lcp_table[i] <= top.lcp_value:
-                top.update_child_list(last_interval)
+                top.update_child_list(last_interval, suf_tab, bwt_table)
                 last_interval = None
 
         if lcp_table[i] > top.lcp_value:
@@ -134,4 +186,4 @@ def find_maximal_repeats(s: str, suf_tab: list[int], lcp_table: list[int], bwt_t
             else:
                 stack.push(Interval(lcp_table[i], lb, -1, []))
 
-    return repeats_set
+    return maximal_repeats
