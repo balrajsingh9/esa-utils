@@ -23,7 +23,22 @@ def gen_suffix_array(suffix_tree: STree) -> list[int]:
     # assuming '$' is greater than all other alphabet
     # this is to conform the assumption in the paper
     # move position of '$' to suf_tab[len(original_text)]
-    return suf_tab[1:] + [suf_tab[0]]
+    return suf_tab
+
+
+def gen_suffix_array_naive(s):
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$"
+    suffixes = list((s[i:] for i in range(len(s))))
+
+    sorted_suf = list(sorted(suffixes, key=lambda word: [(alphabet.index(c)) for c in word]))
+    print(sorted_suf)
+
+    suf_tab = []
+
+    for i in range(len(sorted_suf)):
+        suf_tab.append(suffixes.index(sorted_suf[i]))
+
+    return suf_tab
 
 
 def gen_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
@@ -40,7 +55,7 @@ def gen_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
         inv_sa[suffix] = i
 
     lcp_array: list[int] = [-1] * len(suf_tab)
-    lcp_array[0] = 0
+    lcp_array[0] = -1
     lcp = 0
 
     for i in inv_sa:
@@ -54,6 +69,8 @@ def gen_lcp_array(s: str, suf_tab: list[int]) -> list[int]:
             lcp = max(0, lcp - 1)
         else:
             lcp = 0
+
+    lcp_array[-1] = -1
 
     return lcp_array
 

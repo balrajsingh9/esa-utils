@@ -19,11 +19,11 @@ class TestMatchPattern(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.s = "banana"
-        cls.p = "bana"
+        cls.p = "a"
         cls.non_existing_pattern = "haha"
         cls.stree = STree()
         cls.stree.build_using_mccreight(cls.s)
-        cls.suf_tab = basic_tables_utils.gen_suffix_array(cls.stree)
+        cls.suf_tab = basic_tables_utils.gen_suffix_array_naive(cls.s + '$')
         cls.lcp_tab = basic_tables_utils.gen_lcp_array(cls.s, cls.suf_tab)
 
     def test_empty_pattern_in_non_empty_string_using_esa(self) -> None:

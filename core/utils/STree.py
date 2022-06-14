@@ -103,7 +103,7 @@ def perform_search(node: Node, text: str, pattern: str, idx: int) -> int:
 
 
 def get_lcp(node: Node) -> int:
-    return 0 if Node is None else node.depth + node.idx - 1
+    return 0 if Node is None else node.idx + node.depth - node.idx + node.parent.depth
 
 
 def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRepeats):
@@ -119,8 +119,8 @@ def process_lists(node: Node, sorted_children: list, maximal_repeats: MaximalRep
             prev_child_pos_list = curr_child_pos_list
         else:
             # compute maximal repeats by forming a cartesian product of all prev pos set and curr child
-            for curr_key in curr_child_pos_list:
-                for prev_key in prev_child_pos_list:
+            for prev_key in prev_child_pos_list:
+                for curr_key in curr_child_pos_list:
                     if prev_key != curr_key:
                         prev_child_itr = prev_child_pos_list[prev_key]
                         curr_child_itr_head = curr_child_pos_list[curr_key]
